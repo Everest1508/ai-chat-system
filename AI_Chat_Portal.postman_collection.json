@@ -1,0 +1,707 @@
+{
+  "info": {
+    "name": "AI Chat Portal API",
+    "_postman_id": "ai-chat-portal-collection",
+    "description": "Complete API collection for AI Chat Portal with Conversation Intelligence\n\n**Features:**\n- User Authentication (JWT)\n- Conversation Management\n- Real-time AI Chat (Google Gemini)\n- Conversation Querying\n- AI Configuration\n\n**Setup:**\n1. Import this collection\n2. Set environment variables: `base_url`, `access_token`\n3. Register a user\n4. Login to get tokens\n5. Start testing!\n\n**Base URL:** http://localhost:8000/api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"password2\": \"SecurePass123!\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/register/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "register", ""]
+            },
+            "description": "Register a new user account. No authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Get Tokens)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", jsonData.access);",
+                  "    pm.environment.set(\"refresh_token\", jsonData.refresh);",
+                  "    console.log(\"Tokens saved to environment\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token", ""]
+            },
+            "description": "Login with username and password. Returns access and refresh tokens. Access token is automatically saved to environment."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"access_token\", jsonData.access);",
+                  "    console.log(\"Access token refreshed\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token", "refresh", ""]
+            },
+            "description": "Refresh the access token using the refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{access_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token/verify/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token", "verify", ""]
+            },
+            "description": "Verify if the token is valid. Returns 200 if valid, 401 if invalid."
+          },
+          "response": []
+        }
+      ],
+      "description": "User authentication endpoints using JWT tokens"
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", ""]
+            },
+            "description": "Get the profile of the currently authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newemail@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/update-profile/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "update-profile", ""]
+            },
+            "description": "Update the current user's profile information."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"SecurePass123!\",\n  \"new_password\": \"NewPassword456!\",\n  \"new_password2\": \"NewPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/change-password/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "change-password", ""]
+            },
+            "description": "Change the user's password."
+          },
+          "response": []
+        }
+      ],
+      "description": "User profile management endpoints"
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "List All Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/conversations/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true,
+                  "description": "Filter by status (active/ended)"
+                },
+                {
+                  "key": "search",
+                  "value": "AI",
+                  "disabled": true,
+                  "description": "Search in title and summary"
+                },
+                {
+                  "key": "date_from",
+                  "value": "2024-01-01T00:00:00Z",
+                  "disabled": true,
+                  "description": "Filter from date"
+                },
+                {
+                  "key": "date_to",
+                  "value": "2024-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "Filter to date"
+                }
+              ]
+            },
+            "description": "Get a paginated list of all conversations for the current user. Supports filtering by status, date range, and search."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", ""]
+            },
+            "description": "Get a specific conversation with all its messages. Replace {{conversation_id}} with actual ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Conversation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"conversation_id\", jsonData.id);",
+                  "    console.log(\"Conversation ID saved: \" + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AI Discussion About Future\",\n  \"initial_message\": \"Tell me about the future of artificial intelligence\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", ""]
+            },
+            "description": "Create a new conversation. Optionally include an initial message. Conversation ID is automatically saved to environment."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Conversation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Conversation Title\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", ""]
+            },
+            "description": "Update conversation metadata (title, etc)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", ""]
+            },
+            "description": "Delete a conversation and all its messages."
+          },
+          "response": []
+        },
+        {
+          "name": "Chat - Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What are the main types of machine learning?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/chat/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "chat", ""]
+            },
+            "description": "Send a message in a conversation and get AI response from Google Gemini. Returns both user message and assistant response."
+          },
+          "response": []
+        },
+        {
+          "name": "End Conversation (Generate Summary)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"generate_summary\": true,\n  \"analysis_depth\": \"detailed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/end/",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "end", ""]
+            },
+            "description": "End a conversation and generate AI-powered summary. Analysis depth options: basic, detailed, comprehensive."
+          },
+          "response": []
+        }
+      ],
+      "description": "Conversation management and chat endpoints"
+    },
+    {
+      "name": "Conversation Intelligence",
+      "item": [
+        {
+          "name": "Query Past Conversations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What did we discuss about machine learning?\",\n  \"max_conversations\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversation-query/",
+              "host": ["{{base_url}}"],
+              "path": ["conversation-query", ""]
+            },
+            "description": "Query past conversations using natural language. Uses semantic search and AI to find relevant conversations and generate answers."
+          },
+          "response": []
+        },
+        {
+          "name": "Query with Filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Tell me about our AI discussions\",\n  \"date_from\": \"2024-01-01T00:00:00Z\",\n  \"date_to\": \"2024-12-31T23:59:59Z\",\n  \"topics\": [\"AI\", \"machine learning\"],\n  \"sentiment\": \"positive\",\n  \"max_conversations\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversation-query/",
+              "host": ["{{base_url}}"],
+              "path": ["conversation-query", ""]
+            },
+            "description": "Query past conversations with advanced filters: date range, topics, sentiment."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Query History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/conversation-query/history/",
+              "host": ["{{base_url}}"],
+              "path": ["conversation-query", "history", ""]
+            },
+            "description": "Get history of all queries made about past conversations."
+          },
+          "response": []
+        }
+      ],
+      "description": "AI-powered conversation querying and intelligence features"
+    },
+    {
+      "name": "AI Configuration",
+      "item": [
+        {
+          "name": "Get AI Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai-config/",
+              "host": ["{{base_url}}"],
+              "path": ["ai-config", ""]
+            },
+            "description": "Get current user's AI configuration settings."
+          },
+          "response": []
+        },
+        {
+          "name": "Create AI Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferred_model\": \"gemini-pro\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 2048,\n  \"enable_sentiment_analysis\": true,\n  \"enable_topic_extraction\": true,\n  \"enable_semantic_search\": true,\n  \"analysis_depth\": \"detailed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai-config/",
+              "host": ["{{base_url}}"],
+              "path": ["ai-config", ""]
+            },
+            "description": "Create AI configuration for the user. Can only be created once per user."
+          },
+          "response": []
+        },
+        {
+          "name": "Update AI Config",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temperature\": 0.8,\n  \"analysis_depth\": \"comprehensive\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai-config/",
+              "host": ["{{base_url}}"],
+              "path": ["ai-config", ""]
+            },
+            "description": "Update AI configuration. Only provided fields will be updated."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Default AI Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai-config/defaults/",
+              "host": ["{{base_url}}"],
+              "path": ["ai-config", "defaults", ""]
+            },
+            "description": "Get default AI configuration values."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset AI Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai-config/reset/",
+              "host": ["{{base_url}}"],
+              "path": ["ai-config", "reset", ""]
+            },
+            "description": "Reset AI configuration to default values."
+          },
+          "response": []
+        }
+      ],
+      "description": "AI model and analysis configuration"
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "List All Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["messages", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Get all messages from user's conversations (paginated)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Message",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/1/",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "1", ""]
+            },
+            "description": "Get details of a specific message by ID."
+          },
+          "response": []
+        }
+      ],
+      "description": "Message viewing endpoints (read-only)"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "conversation_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+
+
+
+
